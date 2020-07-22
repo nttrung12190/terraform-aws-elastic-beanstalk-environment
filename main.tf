@@ -411,7 +411,7 @@ locals {
     {
       namespace = "aws:elbv2:loadbalancer"
       name      = "AccessLogsS3Bucket"
-      value     = join("", sort(aws_s3_bucket.elb_logs.*.id))
+      value     = join("", sort(aws_s3_bucket.elb_logs_unique.*.id))
     },
     {
       namespace = "aws:elbv2:loadbalancer"
@@ -888,7 +888,7 @@ data "aws_elb_service_account" "main" {
   count = var.tier == "WebServer" ? 1 : 0
 }
 
-data "aws_iam_policy_document" "elb_logs" {
+data "aws_iam_policy_document" "elb_logs_unique" {
   count = var.tier == "WebServer" ? 1 : 0
 
   statement {
@@ -911,12 +911,12 @@ data "aws_iam_policy_document" "elb_logs" {
   }
 }
 
-resource "aws_s3_bucket" "elb_logs" {
+resource "aws_s3_bucket" "elb_logs_unique" {
   count         = var.tier == "WebServer" ? 1 : 0
-  bucket        = "${module.label.id}-eb-loadbalancer-logs"
+  bucket        = "${module.label.id}-eb-loadbalancer-logs-unique"
   acl           = "private"
   force_destroy = var.force_destroy
-  policy        = join("", data.aws_iam_policy_document.elb_logs.*.json)
+  policy        = join("", data.aws_iam_policy_document.elb_logs_unique.*.json)
 }
 
 module "dns_hostname" {
